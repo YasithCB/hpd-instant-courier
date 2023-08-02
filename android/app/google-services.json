@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "837562529647",
+    "project_id": "hpd-instant-courier-18deb",
+    "storage_bucket": "hpd-instant-courier-18deb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837562529647:android:7127512f4534b55919da9a",
+        "android_client_info": {
+          "package_name": "com.example.courier_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "837562529647-q9m85f9knqkfuqjbooh3b1eiu58s0oi3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJVXMxOLOdWzRUdticLHxZNHe0rxyJS00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "837562529647-q9m85f9knqkfuqjbooh3b1eiu58s0oi3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
