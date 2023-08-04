@@ -1,30 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:courier_app/presentation/screens/tracking_details_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../logic/tracking_number_changed_cubit.dart';
 import '../widgets/main_drawer.dart';
+import 'my_parcels_screen.dart';
 import 'send_parcel_screen.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
-    // Convert to MaterialStateProperty<Color?>
-    final primaryColorStateProperty = MaterialStateProperty.resolveWith<Color?>(
+
+    MaterialStateProperty<Color?> getMaterialStateProperty(Color color) {
+      return MaterialStateProperty.resolveWith<Color?>(
       (Set<MaterialState> states) {
-        return primaryColor;
+        return color;
       },
     );
+
+    }
 
     Future<void> setScreen(String identifier) async {
       Navigator.of(context).pop();
       if (identifier == 'filters') {
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (ctx) => const MainScreen(),
+            builder: (ctx) => const SendParcelScreen(),
           ),
         );
       }
@@ -104,7 +120,7 @@ class MainScreen extends StatelessWidget {
                 const SizedBox(height: 15),
                 Image.asset(
                   './assets/images/home.jpg',
-                  height: 400,
+                  height: 300,
                 ),
                 const SizedBox(height: 15),
                 SizedBox(
@@ -112,13 +128,13 @@ class MainScreen extends StatelessWidget {
                   width: 350,
                   child: TextButton.icon(
                     style: ButtonStyle(
-                      backgroundColor: primaryColorStateProperty,
+                      backgroundColor: getMaterialStateProperty(primaryColor),
                     ),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SendparcelScreen(),
+                          builder: (context) => const SendParcelScreen(),
                         ),
                       );
                     },
@@ -128,6 +144,33 @@ class MainScreen extends StatelessWidget {
                     ),
                     label: Text(
                       'Send a Parcel',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 50,
+                  width: 350,
+                  child: TextButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: getMaterialStateProperty(primaryColor),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyParcelsScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.person_outline,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'My Parcels',
                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                           color: Colors.white, fontWeight: FontWeight.bold),
                     ),

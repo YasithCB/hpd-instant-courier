@@ -49,6 +49,10 @@ class _AuthScreenState extends State<AuthScreen> {
       } else {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: _enteredEmail, password: _enteredPassword);
+        User? user = userCredentials.user;
+        if (user != null) {
+          await user.updateDisplayName(_enteredUsername);
+        }
 
         final storageRef = FirebaseStorage.instance
             .ref()
@@ -57,6 +61,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
         await storageRef.putFile(_pickedImage!);
         final imageUrl = await storageRef.getDownloadURL();
+
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
@@ -76,10 +81,10 @@ class _AuthScreenState extends State<AuthScreen> {
           content: Text(e.message ?? 'Authentication failed'),
         ),
       );
-      setState(() {
-        _isAuthenticating = false;
-      });
     }
+    setState(() {
+      _isAuthenticating = false;
+    });
   }
 
   @override
@@ -116,22 +121,22 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _pickedImage = imageFile;
                               },
                             ),
-                          if(!_isLogin) TextFormField(
-                            decoration: const InputDecoration(
-                                labelText: 'Username'),
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            validator: (value) {
-                              if (value == null ||
-                                  value.trim().length < 3) {
-                                return 'Username must be at least 4 characters long';
-                              }
-                              return null;
-                            },
-                            onSaved: (newValue) {
-                              _enteredUsername = newValue!;
-                            },
-                          ),
+                          if (!_isLogin)
+                            TextFormField(
+                              decoration:
+                                  const InputDecoration(labelText: 'Username'),
+                              autocorrect: false,
+                              textCapitalization: TextCapitalization.none,
+                              validator: (value) {
+                                if (value == null || value.trim().length < 3) {
+                                  return 'Username must be at least 4 characters long';
+                                }
+                                return null;
+                              },
+                              onSaved: (newValue) {
+                                _enteredUsername = newValue!;
+                              },
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(
                                 labelText: 'Email Address'),

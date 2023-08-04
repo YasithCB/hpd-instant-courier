@@ -15,11 +15,6 @@ class _TrackingDetailsScreenState extends State<TrackingDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final primaryColorStateProperty = MaterialStateProperty.resolveWith<Color?>(
-      (Set<MaterialState> states) {
-        return primaryColor;
-      },
-    );
 
     return Scaffold(
       appBar: AppBar(
