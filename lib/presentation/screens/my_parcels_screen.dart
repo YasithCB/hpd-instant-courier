@@ -40,10 +40,12 @@ class _MyParcelsScreenState extends State<MyParcelsScreen> {
       stream: _deliveryBloc.deliveryStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Text('Error fetching data: ${snapshot.error}');
-        } else {
+        } else if(snapshot.data!.isEmpty) {
+          return const Center(child: Text('There are no parcels send yet!'));
+        }else {
           List<Map<String, dynamic>> dataList = snapshot.data!;
 
           // Use dataList to display your data, e.g., ListView.builder
@@ -63,49 +65,49 @@ class _MyParcelsScreenState extends State<MyParcelsScreen> {
     );
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "My Parcels",
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge!
-                .copyWith(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          centerTitle: true,
-          backgroundColor: primaryColor,
-          iconTheme: const IconThemeData(color: Colors.white),
+      appBar: AppBar(
+        title: Text(
+          "My Parcels",
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(color: Colors.white),
+          textAlign: TextAlign.center,
         ),
-        body: Column(
-          children: [
-            SizedBox(
-              height: 300,
-              child: deliversListView,
-            ),
-            const SizedBox(height: 15),
-            SizedBox(
-              height: 50,
-              width: 350,
-              child: TextButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: primaryColorStateProperty,
-                ),
-                onPressed: () {
-                  
-                },
-                icon: const Icon(
-                  Icons.send_time_extension,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  'Send a Parcel',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+        centerTitle: true,
+        backgroundColor: primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Column(
+        children: [
+          SizedBox(
+            height: 300,
+            child: deliversListView,
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            height: 50,
+            width: 350,
+            child: TextButton.icon(
+              style: ButtonStyle(
+                backgroundColor: primaryColorStateProperty,
+              ),
+              onPressed: () {},
+              icon: const Icon(
+                Icons.send_time_extension,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Send a Parcel',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .copyWith(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

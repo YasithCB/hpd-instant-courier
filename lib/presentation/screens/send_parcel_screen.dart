@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:courier_app/presentation/screens/confirm_pickup_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
