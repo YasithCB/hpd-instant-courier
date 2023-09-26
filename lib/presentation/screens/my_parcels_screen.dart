@@ -84,28 +84,6 @@ class _MyParcelsScreenState extends State<MyParcelsScreen> {
             height: 300,
             child: deliversListView,
           ),
-          const SizedBox(height: 15),
-          SizedBox(
-            height: 50,
-            width: 350,
-            child: TextButton.icon(
-              style: ButtonStyle(
-                backgroundColor: primaryColorStateProperty,
-              ),
-              onPressed: () {},
-              icon: const Icon(
-                Icons.send_time_extension,
-                color: Colors.white,
-              ),
-              label: Text(
-                'Send a Parcel',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
         ],
       ),
     );

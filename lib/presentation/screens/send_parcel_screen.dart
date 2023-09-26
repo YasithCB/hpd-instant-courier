@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:courier_app/logic/util.dart';
 import 'package:courier_app/presentation/screens/confirm_pickup_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
 
 class SendParcelScreen extends StatefulWidget {
   const SendParcelScreen({Key? key}) : super(key: key);
@@ -14,54 +15,78 @@ class SendParcelScreen extends StatefulWidget {
 }
 
 class _SendParcelScreenState extends State<SendParcelScreen> {
-  final CameraPosition slCameraPosition = const CameraPosition(
-    target: LatLng(7.8731, 80.7718),
-    zoom: 8.0,
+  // final CameraPosition slCameraPosition = const CameraPosition(
+  //   target: LatLng(7.8731, 80.7718),
+  //   zoom: 8.0,
+  // );
+  final CameraPosition romaniaCameraPosition = const CameraPosition(
+    target: LatLng(45.9432, 24.9668), // Center of Romania
+    zoom: 6.0, // Zoom level
   );
+
   final Completer<GoogleMapController> completer = Completer();
 
-  LatLng? tappedLocation;
-  String address = '';
+  bool isPickupLocationConfirmed = false;
+  LatLng? pickLocation;
+  LatLng? dropLocation;
+  String pickAddress = '';
+  String dropAddress = '';
 
   Future<void> onMapTapped(LatLng location) async {
     setState(() {
-      tappedLocation = location;
+      isPickupLocationConfirmed
+          ? dropLocation = location
+          : pickLocation = location;
     });
 
+    const apiKey = 'AIzaSyALbAWpvL0yK2jmxlTezNvf10bnQmhOdVQ';
+    final apiUrl =
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$apiKey';
+
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(location.latitude, location.longitude);
-      if (placemarks.isNotEmpty) {
-        setState(() {
-          address = placemarks[0].name ?? '';
-        });
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['status'] == 'OK') {
+          final results = decoded['results'][0];
+          final formattedAddress = results['formatted_address'];
+          setState(() {
+            isPickupLocationConfirmed
+                ? dropAddress = formattedAddress
+                : pickAddress = formattedAddress;
+          });
+        }
+      } else {
+        print('API request failed with status ${response.statusCode}');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error while fetching address: $e');
-      }
+      print('Error while fetching address: $e');
     }
   }
 
   void onConfirmLocation() {
-    if (tappedLocation != null) {
+    if (pickLocation != null && dropLocation != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ConfirmPickupScreen(
-            location: tappedLocation!,
-            address: address,
+            pickLocation: pickLocation!,
+            pickAddress: pickAddress,
+            dropAddress: dropAddress,
+            dropLocation: dropLocation!,
           ),
         ),
       );
+    } else if (pickLocation != null) {
+      showSnackBar(context,
+          'Pickup location confirmed! Please choose destination to proceed');
+      setState(() {
+        isPickupLocationConfirmed = true;
+      });
     } else {
-      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a location on the map.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      removeCurrentSnackbars(context);
+      showSnackBar(context, 'Please select a location on the map.');
     }
   }
 
@@ -72,7 +97,9 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Choose Location",
+          isPickupLocationConfirmed
+              ? "Choose Destination Location"
+              : "Choose Pickup Location",
           style: Theme.of(context)
               .textTheme
               .titleLarge!
@@ -86,31 +113,49 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
       body: GoogleMap(
         onTap: onMapTapped,
         mapType: MapType.normal,
-        initialCameraPosition: slCameraPosition,
+        initialCameraPosition: romaniaCameraPosition,
         onMapCreated: (GoogleMapController controller) {
           completer.complete(controller);
         },
-        markers: tappedLocation != null
-            ? {
-                Marker(
-                  markerId: MarkerId(address),
-                  position: tappedLocation!,
-                  infoWindow: InfoWindow(title: address),
-                ),
-              }
-            : {},
+        markers: isPickupLocationConfirmed
+            ? dropLocation != null
+                ? {
+                    Marker(
+                      markerId: MarkerId(dropAddress),
+                      position: dropLocation!,
+                      infoWindow: InfoWindow(
+                          title: dropAddress,
+                          snippet: 'This is the your parrcel\'s destination'),
+                    ),
+                  }
+                : {}
+            : pickLocation != null
+                ? {
+                    Marker(
+                      markerId: MarkerId(pickAddress),
+                      position: pickLocation!,
+                      infoWindow: InfoWindow(
+                          title: pickAddress,
+                          snippet: 'You can handover your parcel from here'),
+                    ),
+                  }
+                : {},
       ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FloatingActionButton.extended(
-            onPressed: onConfirmLocation,
-            label: const Text(
-              'Confirm Pickup Location',
-              style: TextStyle(color: Colors.white),
+            onPressed: () {
+              onConfirmLocation();
+            },
+            label: Text(
+              isPickupLocationConfirmed
+                  ? 'Confirm Destination Location'
+                  : 'Confirm Pickup Location',
+              style: const TextStyle(color: Colors.white),
             ),
-            icon: const Icon(
-              Icons.location_on,
+            icon: Icon(
+              isPickupLocationConfirmed ? Icons.location_on : Icons.my_location,
               color: Colors.white,
             ),
             backgroundColor: primaryColor,

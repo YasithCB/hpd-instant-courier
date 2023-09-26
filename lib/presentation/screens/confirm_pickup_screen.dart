@@ -6,10 +6,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class ConfirmPickupScreen extends StatefulWidget {
   const ConfirmPickupScreen(
-      {super.key, required this.location, required this.address});
+      {super.key,
+      required this.pickLocation,
+      required this.pickAddress,
+      required this.dropLocation,
+      required this.dropAddress});
 
-  final LatLng location;
-  final String address;
+  final LatLng pickLocation;
+  final String pickAddress;
+  final LatLng dropLocation;
+  final String dropAddress;
 
   @override
   State<ConfirmPickupScreen> createState() => _ConfirmPickupScreenState();
@@ -18,9 +24,11 @@ class ConfirmPickupScreen extends StatefulWidget {
 class _ConfirmPickupScreenState extends State<ConfirmPickupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _parcelDescFocusNode = FocusNode();
+  String dropLocation = '';
   String _parcelDesc = '';
   String _contact = '';
   String _specialMessage = '';
+  bool isLoading = false;
 
   void showSnackBar(String message) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -34,15 +42,21 @@ class _ConfirmPickupScreenState extends State<ConfirmPickupScreen> {
   Future<void> submitData() async {
     if (_formKey.currentState?.validate() ?? false) {
       final String documentId =
-          '${widget.location.latitude}_${widget.location.longitude}';
+          '${widget.pickLocation.latitude}_${widget.pickLocation.longitude}';
+
+      setState(() {
+        isLoading = true;
+      });
 
       await FirebaseFirestore.instance
           .collection('delivers')
           .doc(documentId)
           .set({
-        'location':
-            GeoPoint(widget.location.latitude, widget.location.longitude),
-        'address': widget.address,
+        'pickLocation': GeoPoint(
+            widget.pickLocation.latitude, widget.pickLocation.longitude),
+        'dropLocation': GeoPoint(
+            widget.dropLocation.latitude, widget.dropLocation.longitude),
+        'address': widget.pickAddress,
         'parcelDesc': _parcelDesc,
         'contact': _contact,
         'specialMessage': _specialMessage,
@@ -51,7 +65,11 @@ class _ConfirmPickupScreenState extends State<ConfirmPickupScreen> {
           'displayName': currentUser?.displayName,
           'email': currentUser?.email,
         },
-      });
+      }).then((_) => {
+                setState(() {
+                  isLoading = false;
+                })
+              });
 
       showSnackBar('Pickup request sent SuccessFully!');
 
@@ -82,12 +100,52 @@ class _ConfirmPickupScreenState extends State<ConfirmPickupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "Address    :  ${widget.address}",
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  color: primaryColor,
-                  fontWeight: FontWeight.bold,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Pickup Address    :  ",
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+              ),
+              Expanded(
+                child: Text(
+                  widget.pickAddress,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Drop Address    :  ",
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+              ),
+              Expanded(
+                child: Text(
+                  widget.dropAddress,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           TextFormField(
@@ -179,7 +237,7 @@ class _ConfirmPickupScreenState extends State<ConfirmPickupScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            "Confirm Pickup",
+            isLoading ? 'Confirming...' : "Confirm Pickup",
             style: Theme.of(context)
                 .textTheme
                 .titleLarge!

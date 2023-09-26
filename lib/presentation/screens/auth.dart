@@ -1,97 +1,77 @@
 
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:courier_app/presentation/screens/send_parcel_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-import 'package:courier_app/presentation/screens/send_parcel_screen.dart';
-
-import '../widgets/user_image_picker.dart';
 
 final _firebase = FirebaseAuth.instance;
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+class AuthScreenTemp extends StatefulWidget {
+  const AuthScreenTemp({super.key, required this.isAdmin});
+
+  final bool isAdmin;
 
   @override
   State<StatefulWidget> createState() {
-    return _AuthScreenState();
+    return _AuthScreenTempState();
   }
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenTempState extends State<AuthScreenTemp> {
   final _form = GlobalKey<FormState>();
-  var _isLogin = true;
+  bool _isAdmin = false;
   var _enteredEmail = '';
   var _enteredPassword = '';
-  var _enteredUsername = '';
-  File? _pickedImage;
 
-  var _isAuthenticating = false;
+  final _isAuthenticating = false;
+
+  @override
+  void initState() {
+    _isAdmin = widget.isAdmin;
+    super.initState();
+  }
 
   void _submit() async {
-    (isLogin){
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const SendParcelScreen(),),);
-    };
+    // if (!_form.currentState!.validate()) {
+    //   ScaffoldMessenger.of(context).clearSnackBars();
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text('Something went wrong. Try again later!'),
+    //     ),
+    //   );
+    //   return;
+    // }
+    // _form.currentState!.save();
+    // try {
+    //   setState(() {
+    //     _isAuthenticating = true;
+    //   });
 
-    if (!_form.currentState!.validate() && _pickedImage == null) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Something went wrong. Try again later!'),
-        ),
-      );
-      return;
-    }
-    _form.currentState!.save();
-    try {
-      setState(() {
-        _isAuthenticating = true;
-      });
-      if (_isLogin) {
-        final userCredentials = await _firebase.signInWithEmailAndPassword(
-            email: _enteredEmail, password: _enteredPassword);
-      } else {
-        final userCredentials = await _firebase.createUserWithEmailAndPassword(
-            email: _enteredEmail, password: _enteredPassword);
-        User? user = userCredentials.user;
-        if (user != null) {
-          await user.updateDisplayName(_enteredUsername);
-        }
+    //   await _firebase.signInWithEmailAndPassword(
+    //     email: _enteredEmail,
+    //     password: _enteredPassword,
+    //   );
+    // } on FirebaseAuthException catch (e) {
+    //   if (e.code == 'email-already-in-use') {
+    //     //...
+    //   }
+    //   ScaffoldMessenger.of(context).clearSnackBars();
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text(e.message ?? 'Authentication failed'),
+    //     ),
+    //   );
+    // }
+    // setState(() {
+    //   _isAuthenticating = false;
+    // });
 
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('user_images')
-            .child('${userCredentials.user!.uid}.jpg');
-
-        await storageRef.putFile(_pickedImage!);
-        final imageUrl = await storageRef.getDownloadURL();
-
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredentials.user!.uid)
-            .set({
-          'username': _enteredUsername,
-          'email': _enteredEmail,
-          'image_url': imageUrl,
-        });
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        //...
-      }
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Authentication failed'),
-        ),
-      );
-    }
-    setState(() {
-      _isAuthenticating = false;
-    });
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SendParcelScreen()
+      ),
+    );
   }
 
   @override
@@ -105,7 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
         },
       );
     }
-    
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -132,31 +112,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!_isLogin)
-                            UserImagePicker(
-                              onImagePicked: (imageFile) {
-                                _pickedImage = imageFile;
-                              },
-                            ),
-                          if (!_isLogin)
-                            TextFormField(
-                              decoration:
-                                  const InputDecoration(labelText: 'Username'),
-                              autocorrect: false,
-                              textCapitalization: TextCapitalization.none,
-                              validator: (value) {
-                                if (value == null || value.trim().length < 3) {
-                                  return 'Username must be at least 4 characters long';
-                                }
-                                return null;
-                              },
-                              onSaved: (newValue) {
-                                _enteredUsername = newValue!;
-                              },
-                            ),
                           TextFormField(
                             decoration: const InputDecoration(
-                                labelText: 'Email Address'),
+                              labelText: 'Email Address',
+                            ),
                             keyboardType: TextInputType.emailAddress,
                             autocorrect: false,
                             textCapitalization: TextCapitalization.none,
@@ -190,7 +149,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (_isAuthenticating)
                             const CircularProgressIndicator(),
                           if (!_isAuthenticating)
-                          SizedBox(
+                            SizedBox(
                               height: 50,
                               width: 350,
                               child: TextButton(
@@ -199,8 +158,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                       getMaterialStateProperty(primaryColor),
                                 ),
                                 onPressed: _submit,
-                                child: Text( _isLogin ?
-                                  'Login' : 'Signup',
+                                child: Text(
+                                  'Login',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleMedium!
@@ -209,17 +168,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                           fontWeight: FontWeight.bold),
                                 ),
                               ),
-                            ),
-                          if (!_isAuthenticating)
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isLogin = !_isLogin;
-                                });
-                              },
-                              child: Text(_isLogin
-                                  ? 'Create an account'
-                                  : 'I already have an account'),
                             ),
                         ],
                       ),

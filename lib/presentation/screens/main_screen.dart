@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:courier_app/presentation/screens/tracking_details_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../logic/tracking_number_changed_cubit.dart';
 import '../widgets/main_drawer.dart';
+import 'auth.dart';
 import 'my_parcels_screen.dart';
 import 'send_parcel_screen.dart';
 
@@ -93,7 +92,7 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         const SizedBox(height: 20),
                         Text(
-                          'Send & Tracking Your Package',
+                          'Send & Track Your Packages',
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge!
@@ -134,7 +133,7 @@ class _MainScreenState extends State<MainScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SendParcelScreen(),
+                          builder: (context) => const AuthScreenTemp(isAdmin: false),
                         ),
                       );
                     },
